@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TAG=openhabian_v1.5
+
 systemctl -q is-active zram-config  && { echo "ERROR: zram-config service is still running. Please run \"sudo service zram-config stop\" to stop it and uninstall"; exit 1; }
 [ "$(id -u)" -eq 0 ] || { echo "You need to be ROOT (sudo can be used)"; exit 1; }
 [ -d /usr/local/bin/zram-config ] && { echo "zram-config is already installed, uninstall first"; exit 1; }
@@ -7,7 +9,9 @@ systemctl -q is-active zram-config  && { echo "ERROR: zram-config service is sti
 
 apt-get -y install libattr1-dev
 
-git clone https://github.com/StuartIanNaylor/overlayfs-tools
+# git clone https://github.com/kmxz/overlayfs-tools.git
+# git clone https://github.com/StuartIanNaylor/overlayfs-tools
+git clone --branch $TAG https://github.com/mstormi/overlayfs-tools
 cd overlayfs-tools
 make
 cd ..
