@@ -108,14 +108,6 @@ mergeOverlay () {
 	
 }
 
-syncOverlay () {
-	echo "overlay --lowerdir=$ZDIR$BIND_DIR --upperdir=$ZDIR$ZRAM_DEV/upper" >>${ZLOG}
-	cd /usr/local/lib/zram-config/
-	echo y | ./overlay merge -l "${ZDIR}${BIND_DIR}" -u "${ZDIR}${ZRAM_DEV}/upper" >>${ZLOG} 2>&1 || return 1
-	sh -x *.sh  >>${ZLOG} 2>&1 || return 1
-	rm -v *.sh  >>${ZLOG} 2>&1 || return 1
-}
-
 removeZlog () {
 	if [ ! -z "$OLDLOG_DIR" ]
 	then
@@ -245,7 +237,7 @@ fi
 case "$1" in
 	start)
 		echo "zram-config start $(date +%Y-%m-%d-%H:%M:%S)" >>${ZLOG}
-		rm -f ${ZSHARE}/zram-device-list >>${ZLOG}
+		rm -f ${ZSHARE}/zram-device-list.new
 		file=/etc/ztab
 		ZTAB_EMPTY=true
 		while read -r line; do
@@ -268,6 +260,18 @@ case "$1" in
 					ALG=$2
 					MEM_SIZE=$3
 					DISK_SIZE=$4
+					if [ "$1" = "swap" ]; then 
+						entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
+				       	else
+						entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
+					fi
+					if [ -n "$entry" ]; then
+						echo "entry $entry already exists as zram."
+						echo $entry >> ${ZSHARE}/zram-device-list.new
+						continue
+					fi
+					mv ${ZSHARE}/zram-device-list.new ${ZSHARE}/zram-device-list 
+
 					case "$1" in
 						swap)
 							PRIORITY=$5
@@ -346,41 +350,7 @@ case "$1" in
 					;;
 			esac
 		done < "$file"
-		rm -v ${ZSHARE}/zram-device-list.rev >>${ZLOG}
-		;;
-		
-	sync)
-		echo "zram-config stop $(date +%Y-%m-%d-%H:%M:%S)" >>${ZLOG}
-		tac ${ZSHARE}/zram-device-list > ${ZSHARE}/zram-device-list.rev
-		file=${ZSHARE}/zram-device-list.rev
-		while read -r line; do
-			case "$line" in
-				"#"*)
-					# Skip comment line
-					continue
-        				;;
-				"")
-					# Skip comment line
-					continue
-        				;;
-				*)
-					set -- $line
-					echo "ztab sync $1 $2 $3 $4" >>${ZLOG}
-					case "$1" in
-						dir|log)
-							ZTYPE=$1
-							ZRAM_DEV=$2
-							TARGET_DIR=$3
-							BIND_DIR=$4
-							if [ "$ZEPHEMERAL" = false ] ; then
-								syncOverlay
-							fi
-							;;
-					esac
-					;;
-			esac
-		done < "$file"
-		rm -v ${ZSHARE}/zram-device-list.rev >>${ZLOG}
+		rm -fv ${ZSHARE}/zram-device-list.rev ${ZSHARE}/zram-device-list >>${ZLOG}
 		;;
 		
 	enable-ephemeral)
@@ -392,7 +362,7 @@ case "$1" in
 		;;
 		
 	*)
-		echo "Usage: zram-config {start|stop|sync|enable-ephemeral|disable-ephemeral}" >&2
+		echo "Usage: zram-config {start|stop|enable-ephemeral|disable-ephemeral}" >&2
 		exit 1
 		;;
 esac
