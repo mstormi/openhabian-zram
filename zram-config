@@ -358,7 +358,7 @@ case "$1" in
 		;;
 		
 	sync)
-		echo "zram-config stop $(date +%Y-%m-%d-%H:%M:%S)" >>${ZLOG}
+		echo "zram-config sync $(date +%Y-%m-%d-%H:%M:%S)" >>${ZLOG}
 		tac ${ZSHARE}/zram-device-list > ${ZSHARE}/zram-device-list.rev
 		file=${ZSHARE}/zram-device-list.rev
 		while read -r line; do
