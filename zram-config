@@ -30,6 +30,14 @@ createZdir () {
 	then
 		mkdir -p ${ZDIR}${BIND_DIR} >>${ZLOG} 2>&1 || return 1
 
+		if [ -d ${TARGET_DIR} ]
+		then
+			USER=$(stat -c '%U' ${TARGET_DIR})
+			GROUP=$(stat -c '%G' ${TARGET_DIR})
+		else
+			USER=root
+			GROUP=root
+		fi
 		if [ ! -z ${TARGET_DIR} ]
 		then
 			mount --verbose --bind ${TARGET_DIR}/ ${ZDIR}${BIND_DIR}/ >>${ZLOG} 2>&1 || return 1
@@ -42,6 +50,7 @@ createZdir () {
 			echo ${dirMountOpt}  >>${ZLOG}
 			mount --verbose --types ${dirFsType} -o ${dirMountOpt} /dev/zram${RAM_DEV} ${ZDIR}/zram${RAM_DEV}/ >>${ZLOG} 2>&1 || return 1
 			mkdir -p ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
+			chown ${USER}:${GROUP} ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			mount --verbose --types overlay -o lowerdir=${ZDIR}${BIND_DIR},upperdir=${ZDIR}/zram${RAM_DEV}/upper,workdir=${ZDIR}/zram${RAM_DEV}/workdir overlay${RAM_DEV} ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			echo "${ZTYPE}		/zram${RAM_DEV}		${TARGET_DIR}		${BIND_DIR}" >> ${ZSHARE}/zram-device-list
 		else
@@ -79,19 +88,19 @@ createZdevice () {
 	fi
 	if [ ! -z "$ALG" ]
 	then
-		echo "$ALG" > /sys/block/zram$RAM_DEV/comp_algorithm
+		echo "$ALG" > /sys/block/zram${RAM_DEV}/comp_algorithm
 	else
 		echo "zram$RAM_DEV no comp_algorithm" >>${ZLOG}
 	fi
 	if [ ! -z "$MEM_SIZE" ]
 	then
-		echo "$MEM_SIZE" > /sys/block/zram$RAM_DEV/mem_limit
+		echo "$MEM_SIZE" > /sys/block/zram${RAM_DEV}/mem_limit
 	else
 		echo "zram$RAM_DEV no mem_limit" >>${ZLOG}
 	fi
 	if [ ! -z "$DISK_SIZE" ]
 	then
-		echo "$DISK_SIZE" > /sys/block/zram$RAM_DEV/disksize
+		echo "$DISK_SIZE" > /sys/block/zram${RAM_DEV}/disksize
 	else
 		echo "zram$RAM_DEV no disksize" >>${ZLOG}
 		return 1
@@ -257,17 +266,19 @@ case "$1" in
 					ALG=$2
 					MEM_SIZE=$3
 					DISK_SIZE=$4
-					if [ "$1" = "swap" ]; then
-						entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
-					else
-						entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
+					if [ -f ${ZSHARE}/zram-device-list) ]; then
+					       	if [ "$1" = "swap" ]; then
+							entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
+						else
+							entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
+						fi
+						if [ -n "$entry" ]; then
+							echo "entry $entry already exists as zram."
+							echo $entry >> ${ZSHARE}/zram-device-list.new
+							continue
+						fi
 					fi
-					if [ -n "$entry" ]; then
-						echo "entry $entry already exists as zram."
-						echo $entry >> ${ZSHARE}/zram-device-list.new
-						continue
-					fi
-					mv ${ZSHARE}/zram-device-list.new ${ZSHARE}/zram-device-list 
+					test -f ${ZSHARE}/zram-device-list.new && mv ${ZSHARE}/zram-device-list.new ${ZSHARE}/zram-device-list 
 					case "$1" in
 						swap)
 							PRIORITY=$5
