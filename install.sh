@@ -9,8 +9,14 @@ systemctl -q is-active zram-config  && { echo "ERROR: zram-config service is sti
 
 apt-get -y install libattr1-dev
 
-# git clone https://github.com/kmxz/overlayfs-tools.git
-# git clone https://github.com/StuartIanNaylor/overlayfs-tools
+#if grep -q "buster" /etc/os-release
+#then
+#  git clone https://github.com/StuartIanNaylor/overlayfs-tools -b Arch
+#else
+#  git clone https://github.com/StuartIanNaylor/overlayfs-tools
+#fi
+
+# will support buster only from now on
 git clone --branch $TAG https://github.com/mstormi/overlayfs-tools
 cd overlayfs-tools
 make
