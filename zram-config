@@ -49,7 +49,6 @@ createZdir () {
 			mount --verbose --types overlay -o redirect_dir=on,lowerdir=${ZDIR}${BIND_DIR},upperdir=${ZDIR}/zram${RAM_DEV}/upper,workdir=${ZDIR}/zram${RAM_DEV}/workdir overlay${RAM_DEV} ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			chown $dirUser:$dirGroup ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			chmod $dirPerm ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
-		       	>>${ZLOG} 2>&1 || return 1
 			echo "${ZTYPE}		/zram${RAM_DEV}		${TARGET_DIR}		${BIND_DIR}" >> ${ZSHARE}/zram-device-list
 		else
 			echo "No mount dir in ztab" >>${ZLOG}
@@ -267,12 +266,14 @@ case "$1" in
 					DISK_SIZE=$4
 					if [ -f ${ZSHARE}/zram-device-list ]
 					then
-						if [ "$1" = "swap" ]; then
+						if [ "$1" = "swap" ]
+						then
                                         		entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
                                         	else
                                         		entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
 						fi
-                                        	if [ -n "$entry" ]; then
+                                        	if [ -n "$entry" ]
+						then
                                         		echo "entry $entry already exists as zram."
                                         		echo $entry >> ${ZSHARE}/zram-device-list.new
                                         		continue

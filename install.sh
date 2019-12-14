@@ -16,8 +16,8 @@ apt-get -y install libattr1-dev
 #  git clone https://github.com/StuartIanNaylor/overlayfs-tools
 #fi
 
-# will support buster only from now on
-git clone --branch $TAG https://github.com/mstormi/overlayfs-tools
+# buster compile fixed in origin
+git clone https://github.com/kmxz/overlayfs-tools
 cd overlayfs-tools
 make
 cd ..
