@@ -45,6 +45,8 @@ createZdir () {
 			mke2fs -v -t ${dirFsType} /dev/zram${RAM_DEV} >>${ZLOG} 2>&1 || return 1
 			mkdir -p ${ZDIR}/zram${RAM_DEV} >>${ZLOG} 2>&1 || return 1
 			mount --verbose --types ${dirFsType} -o ${dirMountOpt} /dev/zram${RAM_DEV} ${ZDIR}/zram${RAM_DEV}/ >>${ZLOG} 2>&1 || return 1
+			chown $dirUser:$dirGroup ${ZDIR}/zram${RAM_DEV} >>${ZLOG} 2>&1 || return 1
+			chmod $dirPerm ${ZDIR}/zram${RAM_DEV} >>${ZLOG} 2>&1 || return 1
 			mkdir -p ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			mount --verbose --types overlay -o redirect_dir=on,lowerdir=${ZDIR}${BIND_DIR},upperdir=${ZDIR}/zram${RAM_DEV}/upper,workdir=${ZDIR}/zram${RAM_DEV}/workdir overlay${RAM_DEV} ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 			chown $dirUser:$dirGroup ${ZDIR}/zram${RAM_DEV}/upper ${ZDIR}/zram${RAM_DEV}/workdir ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
@@ -266,22 +268,20 @@ case "$1" in
 					DISK_SIZE=$4
 					if [ -f ${ZSHARE}/zram-device-list ]
 					then
-						if [ "$1" = "swap" ]
-						then
-                                        		entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
-                                        	else
-                                        		entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
+						if [ "$1" = "swap" ]; then
+              entry=$(egrep "^swap" ${ZSHARE}/zram-device-list)
+            else
+              entry=$(egrep "$1.*$5" ${ZSHARE}/zram-device-list)
 						fi
-                                        	if [ -n "$entry" ]
-						then
-                                        		echo "entry $entry already exists as zram."
-                                        		echo $entry >> ${ZSHARE}/zram-device-list.new
-                                        		continue
-                                        	fi
-                                        fi
-                                        test -f ${ZSHARE}/zram-device-list.new && mv ${ZSHARE}/zram-device-list.new ${ZSHARE}/zram-device-list
-
-					case "$1" in
+            if [ -n "$entry" ]; then
+              echo "entry $entry already exists as zram."
+              echo $entry >> ${ZSHARE}/zram-device-list.new
+              continue
+            fi
+          fi
+          test -f ${ZSHARE}/zram-device-list.new && mv ${ZSHARE}/zram-device-list.new ${ZSHARE}/zram-device-list
+					
+          case "$1" in
 						swap)
 							PRIORITY=$5
 							PAGE_CLUSTER=$6
