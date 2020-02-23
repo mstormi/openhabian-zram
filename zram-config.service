@@ -1,7 +1,8 @@
 [Unit]
 Description=zram-config
 After=local-fs.target
-Before=reboot.target halt.target
+Before=reboot.target halt.target smbd.service
+
 [Service]
 Type=oneshot
 ExecStartPre=-/bin/rm -f /usr/local/share/zram-config/zram-device-list /usr/loca
