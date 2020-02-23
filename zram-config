@@ -85,12 +85,6 @@ createZdevice () {
 	else
         RAM_DEV=$(cat /sys/class/zram-control/hot_add)
 	fi
-	if [ ! -z "$ALG" ]
-	then
-		echo "$ALG" > /sys/block/zram${RAM_DEV}/comp_algorithm
-	else
-		echo "zram$RAM_DEV no comp_algorithm" >>${ZLOG}
-	fi
 	if [ ! -z "$MEM_SIZE" ]
 	then
 		echo "$MEM_SIZE" > /sys/block/zram${RAM_DEV}/mem_limit
@@ -103,6 +97,12 @@ createZdevice () {
 	else
 		echo "zram$RAM_DEV no disksize" >>${ZLOG}
 		return 1
+	fi
+	if [ ! -z "$ALG" ]
+	then
+		echo "$ALG" > /sys/block/zram${RAM_DEV}/comp_algorithm
+	else
+		echo "zram$RAM_DEV no comp_algorithm" >>${ZLOG}
 	fi
 	echo "zram$RAM_DEV created comp_algorithm=$ALG mem_limit=$MEM_SIZE disksize=$DISK_SIZE" >>${ZLOG}
 }
