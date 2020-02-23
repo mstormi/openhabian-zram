@@ -4,6 +4,8 @@ After=local-fs.target
 Before=reboot.target halt.target
 [Service]
 Type=oneshot
+ExecStartPre=-/bin/rm -f /usr/local/share/zram-config/zram-device-list /usr/loca
+l/share/zram-config/zram-device-list.rev
 ExecStart=/usr/local/bin/zram-config start
 ExecStop=/usr/local/bin/zram-config stop
 TimeoutSec=180
