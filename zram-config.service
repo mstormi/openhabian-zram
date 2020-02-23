@@ -2,6 +2,7 @@
 Description=zram-config
 After=local-fs.target
 Before=reboot.target halt.target smbd.service
+PartOf=openhab2.service
 
 [Service]
 Type=oneshot
