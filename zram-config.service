@@ -1,7 +1,7 @@
 [Unit]
 Description=zram-config
 After=local-fs.target
-Before=reboot.target halt.target smbd.service
+Before=reboot.target halt.target smbd.service openhab2.service
 PartOf=openhab2.service
 
 [Service]
