@@ -7,8 +7,8 @@ PartOf=openhab2.service
 [Service]
 Type=oneshot
 ExecStartPre=-/bin/rm -f /usr/local/share/zram-config/zram-device-list /usr/local/share/zram-config/zram-device-list.rev
-ExecStart=/usr/local/bin/zram-config start
-ExecStop=/usr/local/bin/zram-config stop
+ExecStart=-/usr/local/bin/zram-config start
+ExecStop=-/usr/local/bin/zram-config stop
 TimeoutSec=180
 RemainAfterExit=yes
 
