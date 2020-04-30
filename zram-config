@@ -142,6 +142,7 @@ removeZlog () {
 	then
 		#rm -rv ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 		umount --verbose ${ZDIR}${ZRAM_DEV}/ >>${ZLOG} 2>&1 || return 1
+		umount overlay${DEV_NUM}
 		rm -rv ${ZDIR}${ZRAM_DEV} >>${ZLOG} 2>&1 || return 1
 	else
 		return 1
@@ -155,6 +156,7 @@ removeZlog () {
 	fi
 	invoke-rc.d rsyslog stop >>${ZLOG} 2>&1 || return 1
 	echo "$DEV_NUM" > /sys/class/zram-control/hot_remove 2>/dev/null
+	/sbin/zramctl -r "/dev${ZRAM_DEV}" 2>/dev/null
 	invoke-rc.d rsyslog restart >>${ZLOG} 2>&1 || return 1
 	journalctl --flush >>${ZLOG} 2>&1 || return 1
 	echo "/dev$ZRAM_DEV removed" >>${ZLOG}
@@ -180,6 +182,7 @@ removeZdir () {
 	then
 		#rm -rv ${TARGET_DIR} >>${ZLOG} 2>&1 || return 1
 		umount --verbose ${ZDIR}${ZRAM_DEV}/ >>${ZLOG} 2>&1 || return 1
+		umount overlay${DEV_NUM}
 		rm -rv ${ZDIR}${ZRAM_DEV} >>${ZLOG} 2>&1 || return 1
 	else
 		return 1
@@ -192,6 +195,7 @@ removeZdir () {
 		return 1
 	fi
 	echo "$DEV_NUM" > /sys/class/zram-control/hot_remove
+	/sbin/zramctl -r "/dev${ZRAM_DEV}" 2>/dev/null
 	echo "/dev$ZRAM_DEV removed" >>${ZLOG}  
 }
 
@@ -199,6 +203,7 @@ removeZswap () {
 	DEV_NUM=$(echo "$ZRAM_DEV" | tr -dc '0-9')
 	swapoff /dev$ZRAM_DEV >>${ZLOG} 2>&1 || return 1
 	echo "$DEV_NUM" > /sys/class/zram-control/hot_remove
+	/sbin/zramctl -r "/dev${ZRAM_DEV}" 2>/dev/null
 	echo "/dev$ZRAM_DEV removed" >>${ZLOG}
 }
 
