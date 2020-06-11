@@ -64,8 +64,10 @@ createZdir () {
 	
 createZlog () {
 	invoke-rc.d rsyslog stop >>${ZLOG} 2>&1 || return 1
+	invoke-rc.d nginx stop >>${ZLOG} 2>&1 || return 1
 	createZdir || return 1
 	invoke-rc.d rsyslog restart >>${ZLOG} 2>&1 || return 1
+	invoke-rc.d nginx restart >>${ZLOG} 2>&1 || return 1
 	journalctl --flush >>${ZLOG} 2>&1 || return 1
 	if [ ! -z "$OLDLOG_DIR" ]
 	then
@@ -126,12 +128,14 @@ removeZlog () {
 	if [ ! -z "$TARGET_DIR" ]
 	then
 		invoke-rc.d rsyslog stop >>${ZLOG} 2>&1 || return 1
+		invoke-rc.d nginx stop >>${ZLOG} 2>&1 || return 1
 		if umount --verbose ${TARGET_DIR}/ 2>/dev/null
 		then
 			echo "umount ${TARGET_DIR}/" >>${ZLOG}
 		else
 		sleep .1
 			invoke-rc.d rsyslog stop 2>/dev/null
+			invoke-rc.d nginx stop 2>/dev/null
 			umount --verbose -l ${TARGET_DIR}/ >>${ZLOG} 2>&1 || return 1
 		fi
 	else
@@ -155,9 +159,11 @@ removeZlog () {
 		return 1
 	fi
 	invoke-rc.d rsyslog stop >>${ZLOG} 2>&1 || return 1
+	invoke-rc.d nginx stop >>${ZLOG} 2>&1 || return 1
 	echo "$DEV_NUM" > /sys/class/zram-control/hot_remove 2>/dev/null
 	/sbin/zramctl -r "/dev${ZRAM_DEV}" 2>/dev/null
 	invoke-rc.d rsyslog restart >>${ZLOG} 2>&1 || return 1
+	invoke-rc.d nginx restart >>${ZLOG} 2>&1 || return 1
 	journalctl --flush >>${ZLOG} 2>&1 || return 1
 	echo "/dev$ZRAM_DEV removed" >>${ZLOG}
 }
