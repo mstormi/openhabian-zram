@@ -245,7 +245,7 @@ disableZephemeral () {
 ZSHARE=/usr/local/share/zram-config
 ZLOG=${ZSHARE}/log/zram-config.log
 ZDIR=/opt/zram
-if grep -q init=/bin/ro-root.sh /boot/cmdline.txt;then
+if [[ -f /boot/cmdline.txt ]] && grep -q init=/bin/ro-root.sh /boot/cmdline.txt; then
 ZEPHEMERAL=true
 else
 ZEPHEMERAL=false
