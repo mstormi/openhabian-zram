@@ -35,5 +35,5 @@ mkdir -p /usr/local/lib/zram-config/
 install -m 755 overlayfs-tools/overlay /usr/local/lib/zram-config/overlay
 systemctl enable zram-config
 
-echo "#####          Reboot to activate zram-config         #####"
-echo "#####       edit /etc/ztab to configure options       #####"
+#echo "#####          Reboot to activate zram-config         #####"
+#echo "#####       edit /etc/ztab to configure options       #####"
