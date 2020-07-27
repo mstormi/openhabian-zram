@@ -38,8 +38,8 @@ createZdir () {
 			echo "dirPerm "${TARGET_DIR}" "$dirPerm" "$dirUser":"$dirGroup >> ${ZLOG}
 			mount --verbose --bind ${TARGET_DIR}/ ${ZDIR}${BIND_DIR}/ >>${ZLOG} 2>&1 || return 1
 			mount --verbose --make-private ${ZDIR}${BIND_DIR}/ >>${ZLOG} 2>&1 || return 1
-			dirMountOpt=$(awk -v a=${ZDIR}${BIND_DIR} '$2 == a {print $4}' /proc/mounts)
-			dirFsType=$(awk -v a=${ZDIR}${BIND_DIR} '$2 == a {print $3}' /proc/mounts)
+			dirMountOpt=$(awk -v a=${ZDIR}${BIND_DIR} '$2 == a {print $4}' /proc/mounts | head -1)
+			dirFsType=$(awk -v a=${ZDIR}${BIND_DIR} '$2 == a {print $3}' /proc/mounts | head -1)
 			echo "dirMountOpt "$dirMountOpt" dirFsType " $dirFsType >> ${ZLOG}
 			createZdevice || return 1
 			mke2fs -v -t ${dirFsType} /dev/zram${RAM_DEV} >>${ZLOG} 2>&1 || return 1
