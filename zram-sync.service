@@ -1,0 +1,14 @@
+[Unit]
+Description=zram sync on shutdown/reboot
+PartOf=openhab2.service
+Before=reboot.target shutdown.target poweroff.target halt.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/zram-config stop
+ExecStop=/usr/local/bin/zram-config stop
+TimeoutSec=0
+RemainAfterExit=true
+
+[Install]
+WantedBy=basic.target reboot.target shutdown.target poweroff.target halt.target
