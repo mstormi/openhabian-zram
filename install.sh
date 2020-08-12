@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG=openhabian_v1.5
+TAG=openhabian_v1.6
 
 systemctl -q is-active zram-config  && { echo "ERROR: zram-config service is still running. Please run \"sudo service zram-config stop\" to stop it and uninstall"; exit 1; }
 [ "$(id -u)" -eq 0 ] || { echo "You need to be ROOT (sudo can be used)"; exit 1; }
@@ -23,8 +23,8 @@ cd ..
 
 # zram-config install
 install -m 755 zram-config /usr/local/bin/
+install -m 755 zramsync /usr/local/bin/
 install -m 644 zram-config.service /etc/systemd/system/zram-config.service
-install -m 644 zram-sync.service /etc/systemd/system/zram-sync.service
 install -m 644 ztab /etc/ztab
 mkdir -p /usr/local/share/zram-config
 mkdir -p /usr/local/share/zram-config/log
