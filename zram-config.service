@@ -1,7 +1,6 @@
 [Unit]
 Description=zram-config
-After=local-fs.target network.target
-Requires=network.target
+After=local-fs.target
 Before=smbd.service openhab2.service
 PartOf=openhab2.service
 
@@ -17,6 +16,4 @@ TimeoutSec=300
 RemainAfterExit=yes
 
 [Install]
-WantedBy=basic.target
-RequiredBy=openhab2.service
-
+WantedBy=openhab2.service
