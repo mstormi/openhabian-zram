@@ -17,5 +17,6 @@ TimeoutSec=300
 RemainAfterExit=yes
 
 [Install]
-WantedBy=basic.target openhab2.service
+WantedBy=basic.target
+RequiredBy=openhab2.service
 
