@@ -20,7 +20,7 @@ else
 				continue
 				;;
 			*)
-				set -- "$line"
+				set -- $line
 				if [[ "$1" = "dir" ]]; then
 					rsync -avRh "$5" "${dir}"
 				fi
