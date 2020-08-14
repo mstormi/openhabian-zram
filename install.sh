@@ -22,8 +22,8 @@ make
 cd ..
 
 # zram-config install
-install -m 755 zram-config /usr/local/bin/
-install -m 755 zramsync /usr/local/bin/
+install -m 755 zram-config /usr/local/sbin/
+install -m 755 zramsync /usr/local/sbin/
 install -m 644 zram-config.service /etc/systemd/system/zram-config.service
 install -m 644 ztab /etc/ztab
 mkdir -p /usr/local/share/zram-config

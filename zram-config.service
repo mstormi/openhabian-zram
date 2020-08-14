@@ -7,11 +7,11 @@ PartOf=openhab2.service
 [Service]
 Type=oneshot
 ExecStartPre=-/bin/rm -f /usr/local/share/zram-config/zram-device-list /usr/local/share/zram-config/zram-device-list.rev
-ExecStartPre=-/usr/local/bin/zramsync recover "/storage/zram"
-ExecStartPost=-/usr/local/bin/zramsync recover "/storage/zram"
-ExecStart=-/usr/local/bin/zram-config start
-ExecStop=-/usr/local/bin/zramsync sync "/storage/zram"
-ExecStopPost=-/usr/local/bin/zram-config stop
+ExecStartPre=-/usr/local/sbin/zramsync recover "/storage/zram"
+ExecStartPost=-/usr/local/sbin/zramsync recover "/storage/zram"
+ExecStart=-/usr/local/sbin/zram-config start
+ExecStop=-/usr/local/sbin/zramsync sync "/storage/zram"
+ExecStopPost=-/usr/local/sbin/zram-config stop
 TimeoutSec=300
 RemainAfterExit=yes
 
