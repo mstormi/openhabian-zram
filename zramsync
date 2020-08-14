@@ -2,13 +2,20 @@
 
 
 STORAGE=/storage/zram
+LOG=/storage/zram/zramsync.log
 
 if [[ $# -ne 2 ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>"; exit 1; fi
 
 dir=$2
+echo "zramsync $1 @ $(date)" | tee -a $LOG
 
 if [[ "$1" = "recover" ]]; then
-	rsync -avrh "${dir}/" /
+	if [[ -d $STORAGE ]]; then
+		echo "zramsync recovery $1 starting @ $(date)" | tee -a $LOG
+		rsync -avrh "${dir}/" /
+	else
+		echo "zramsync recovery directory $1 missing @ $(date)" | tee -a $LOG
+	fi
 else
 	if [[ ! -f /etc/ztab ]] || [[ "$1" != "sync" ]]; then echo "FAILED"; exit 1; fi
 
@@ -28,6 +35,7 @@ else
 			*)
 				set -- $line
 				if [[ "$1" = "dir" ]]; then
+					echo "zramsync creating backup $1 @ $(date)" | tee -a $LOG
 					rsync -avRh "$5" "${dir}"
 				fi
 				;;
