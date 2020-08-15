@@ -4,6 +4,10 @@
 STORAGE=/storage/zram
 LOG=/storage/zram/zramsync.log
 
+if [[ ! -d $STORAGE ]]; then
+	mkdir -p "${STORAGE}"
+fi
+
 if [[ $# -ne 2 ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>"; exit 1; fi
 
 dir=$2
@@ -19,9 +23,6 @@ if [[ "$1" = "recover" ]]; then
 else
 	if [[ ! -f /etc/ztab ]] || [[ "$1" != "sync" ]]; then echo "FAILED"; exit 1; fi
 
-	if [[ ! -d $STORAGE ]]; then
-		mkdir -p "${STORAGE}"
-	fi
 	while read -r line; do
 		case "$line" in
 			"#"*)
