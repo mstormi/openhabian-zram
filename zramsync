@@ -4,43 +4,48 @@
 STORAGE=/storage/zram
 LOG=/storage/zram/zramsync.log
 
+dir=$2
+
+if [[ $# -ne 2 ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>" | tee -a $LOG; exit 1; fi
+
+if [[ ! -f /etc/ztab ]]; then echo "FAILED (zram not installed)" | tee -a $LOG; exit 1; fi
+
 if [[ ! -d $STORAGE ]]; then
 	mkdir -p "${STORAGE}"
 fi
 
-if [[ $# -ne 2 ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>"; exit 1; fi
-
-dir=$2
 echo "zramsync $1 @ $(date)" | tee -a $LOG
 
 if [[ "$1" = "recover" ]]; then
-	if [[ -d $STORAGE ]]; then
+	if [[ -d ${STORAGE}/var ]]; then
 		echo "zramsync recovery $1 starting @ $(date)" | tee -a $LOG
 		rsync -avrh "${dir}/" /
+		exit 0
 	else
 		echo "zramsync recovery directory $1 missing @ $(date)" | tee -a $LOG
+		exit 0
 	fi
-else
-	if [[ ! -f /etc/ztab ]] || [[ "$1" != "sync" ]]; then echo "FAILED"; exit 1; fi
-
-	while read -r line; do
-		case "$line" in
-			"#"*)
-				# Skip comment line
-				continue
-				;;
-			"")
-				# Skip empty line
-				continue
-				;;
-			*)
-				set -- $line
-				if [[ "$1" = "dir" ]]; then
-					echo "zramsync creating backup $1 @ $(date)" | tee -a $LOG
-					rsync -avRh "$5" "${dir}"
-				fi
-				;;
-		esac
-	done < /etc/ztab
 fi
+
+if [[ "$1" != "sync" ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>" | tee -a $LOG; exit 1; fi
+
+while read -r line; do
+	case "$line" in
+		"#"*)
+			# Skip comment line
+			continue
+		;;
+		"")
+			# Skip empty line
+			continue
+			;;
+		*)
+			set -- $line
+			if [[ "$1" = "dir" ]]; then
+				echo "zramsync creating backup $1 @ $(date)" | tee -a $LOG
+				rsync -avRh "$5" "${dir}"
+			fi
+			;;
+	esac
+done < /etc/ztab
 
