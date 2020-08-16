@@ -1,33 +1,29 @@
 #!/bin/bash -x
 
 
-STORAGE=/storage/zram
 LOG=/storage/zram/zramsync.log
 
 dir=$2
+storeFile=${dir}/zram.tar
 
 if [[ $# -ne 2 ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>" | tee -a $LOG; exit 1; fi
 
 if [[ ! -f /etc/ztab ]]; then echo "FAILED (zram not installed)" | tee -a $LOG; exit 1; fi
 
-if [[ ! -d $STORAGE ]]; then
-	mkdir -p "${STORAGE}"
+if [[ ! -d $dir ]]; then
+	mkdir -p "${dir}"
 fi
-
-echo "zramsync $1 @ $(date)" | tee -a $LOG
 
 if [[ "$1" = "recover" ]]; then
-	if [[ -d ${STORAGE}/var ]]; then
-		echo "zramsync recovery $1 starting @ $(date)" | tee -a $LOG
-		rsync -avrh "${dir}/" /
-		exit 0
-	else
-		echo "zramsync recovery directory $1 missing @ $(date)" | tee -a $LOG
-		exit 0
-	fi
+	mode=recover
+	echo "zramsync recovery starting @ $(date)" | tee -a $LOG
+	inFile=/etc/ztab
+else
+	mode=sync
+	echo "zramsync creating backup @ $(date)" | tee -a $LOG
+	inFile=/usr/local/share/zram-config/zram-device-list
+	rm -f "$storeFile"
 fi
-
-if [[ "$1" != "sync" ]]; then echo "$(basename "$0"): wrong usage ! Arguments: sync|recover <dir>" | tee -a $LOG; exit 1; fi
 
 while read -r line; do
 	case "$line" in
@@ -42,10 +38,30 @@ while read -r line; do
 		*)
 			set -- $line
 			if [[ "$1" = "dir" ]]; then
-				echo "zramsync creating backup $1 @ $(date)" | tee -a $LOG
-				rsync --one-file-system -avRh "$5" "${dir}"
+				df -k | grep over | tee -a $LOG
+
+				OLDWD=$(pwd)
+				if [[ "$mode" = "recover" ]]; then
+					cd /;
+					echo "tar --transform 's,^\.,'$5',' -rf ${storeFile} ." |tee -a $LOG
+					echo "recovering $5 ..." | tee -a $LOG
+					tar tvf "$storeFile" "$5" | tee -a $LOG
+				else
+					ls -l $3/date
+					NEWDIR="/opt/zram${2}/upper"
+					#NEWDIR=$(df $5 | awk '/^over/ { print "/opt/zram/zram"substr($1, length($1))"/upper"}') # /opt/zram/zram$(f1 | tr -d 'a-z')/upper
+					echo "$NEWDIR" | tee -a $LOG
+					ls -ld /opt/zram /opt/zram/zram1 "$NEWDIR"
+					if [[ -d "$NEWDIR" ]]; then
+						cd $NEWDIR
+						echo "tar --transform 's,^\.,'$3',' -rf ${storeFile} ." | tee -a $LOG
+						echo "storing $3 ..." | tee -a $LOG
+						tar --transform 's,^\.,'$3',' -rf "${storeFile}" .
+					fi
+				fi
+				cd $OLDWD
 			fi
 			;;
 	esac
-done < /etc/ztab
+done < $inFile
 
