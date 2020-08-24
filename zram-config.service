@@ -2,6 +2,7 @@
 Description=zram-config
 After=local-fs.target
 Before=shutdown.target reboot.target halt.target poweroff.target smbd.service openhab2.service
+RequiresMountsFor=/opt/zram/zram1/upper /opt/zram/zram2/upper
 PartOf=openhab2.service
 
 [Service]
