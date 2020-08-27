@@ -1,0 +1,17 @@
+[Unit]
+Description=zramsync
+RequiresMountsFor=/opt/zram/zram1/upper /opt/zram/zram2/upper
+Requires=zram-config.service
+After=zram-config.service
+Before=reboot.target halt.target shutdown.target poweroff.target
+BindsTo=zram-config.service
+
+[Service]
+Type=oneshot
+TimeoutSec=300
+RemainAfterExit=yes
+ExecStop=-/usr/local/sbin/zramsync "sync" "/storage/zram"
+ExecStopPost=/usr/local/sbin/zram-config "stop"
+
+[Install]
+WantedBy=basic.target
