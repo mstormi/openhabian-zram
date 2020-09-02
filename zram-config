@@ -2,6 +2,8 @@
 
 set -x
 
+TMPDIR=/tmp
+
 createZdevice() {
 	# Check Zram Class created
 	if ! [[ -d "/sys/class/zram-control" ]]; then
@@ -56,7 +58,7 @@ createZswap() {
 		echo "zram${RAM_DEV} no swappiness" >> "$ZLOG"
 	fi
 
-	echo "swap		/zram${RAM_DEV}		zram-config${RAM_DEV}" >> "${TMPDIR:-/tmp}"/zram-device-list
+	echo "swap		/zram${RAM_DEV}		zram-config${RAM_DEV}" >> "${TMPDIR}"/zram-device-list
 }
 
 createZdir() {
@@ -94,7 +96,7 @@ createZdir() {
 			chown "${dirUser}:${dirGroup}" "${ZDIR}/zram${RAM_DEV}/upper" "${ZDIR}/zram${RAM_DEV}/workdir" "$TARGET_DIR" >> "$ZLOG" 2>&1 || return 1
 			chmod "$dirPerm" "${ZDIR}/zram${RAM_DEV}/upper" "${ZDIR}/zram${RAM_DEV}/workdir" "$TARGET_DIR" >> "$ZLOG" 2>&1 || return 1
 
-			echo "${ZTYPE}		/zram${RAM_DEV}		${TARGET_DIR}		${BIND_DIR}" >> "${TMPDIR:-/tmp}"/zram-device-list
+			echo "${ZTYPE}		/zram${RAM_DEV}		${TARGET_DIR}		${BIND_DIR}" >> "${TMPDIR}"/zram-device-list
 		else
 			echo "No mount directory provided in ztab" >> "$ZLOG"
 			return 1
@@ -281,7 +283,7 @@ fi
 case "$1" in
 	start)
 		echo "zram-config start $(date +%Y-%m-%d-%H:%M:%S)" >> "$ZLOG"
-		rm -fv "${TMPDIR:-/tmp}"/zram-device-list.new >> "$ZLOG"
+		rm -fv "${TMPDIR}"/zram-device-list.new >> "$ZLOG"
 		file="/etc/ztab"
 		ZTAB_EMPTY="true"
 		while read -r line; do
@@ -304,19 +306,19 @@ case "$1" in
 					ALG="$2"
 					MEM_SIZE="$3"
 					DISK_SIZE="$4"
-					if [[ -f "${TMPDIR:-/tmp}"/zram-device-list ]]; then
+					if [[ -f "${TMPDIR}"/zram-device-list ]]; then
 						if [[ $1 == "swap" ]]; then
-							entry="$(grep "^swap" "${TMPDIR:-/tmp}"/zram-device-list)"
+							entry="$(grep "^swap" "${TMPDIR}"/zram-device-list)"
 						else
-							entry="$(grep "${1}.*${5}" "${TMPDIR:-/tmp}"/zram-device-list)"
+							entry="$(grep "${1}.*${5}" "${TMPDIR}"/zram-device-list)"
 						fi
 						if [[ -n $entry ]]; then
 							echo "entry ${entry} already exists as zram."
-							echo "$entry" >> "${TMPDIR:-/tmp}"/zram-device-list.new
+							echo "$entry" >> "${TMPDIR}"/zram-device-list.new
 							continue
 						fi
 					fi
-					test -f "${TMPDIR:-/tmp}"/zram-device-list.new && mv "${TMPDIR:-/tmp}"/zram-device-list.new "${TMPDIR:-/tmp}"/zram-device-list
+					test -f "${TMPDIR}"/zram-device-list.new && mv "${TMPDIR}"/zram-device-list.new "${TMPDIR}"/zram-device-list
 
 					case "$1" in
 						swap)
@@ -354,8 +356,8 @@ case "$1" in
 
 	stop)
 		echo "zram-config stop $(date +%Y-%m-%d-%H:%M:%S)" >> "$ZLOG"
-		tac "${TMPDIR:-/tmp}"/zram-device-list > "${TMPDIR:-/tmp}"/zram-device-list.rev
-		file="${TMPDIR:-/tmp}/zram-device-list.rev"
+		tac "${TMPDIR}"/zram-device-list > "${TMPDIR}"/zram-device-list.rev
+		file="${TMPDIR}/zram-device-list.rev"
 		while read -r line; do
 			case "$line" in
 				"#"*)
@@ -402,7 +404,7 @@ case "$1" in
 					;;
 			esac
 		done < "$file"
-		rm -fv "${TMPDIR:-/tmp}"/zram-device-list.rev "${TMPDIR:-/tmp}"/zram-device-list >> "$ZLOG"
+		rm -fv "${TMPDIR}"/zram-device-list.rev "${TMPDIR}"/zram-device-list >> "$ZLOG"
 		;;
 
 	enable-ephemeral)
@@ -415,8 +417,8 @@ case "$1" in
 
 	sync)
 		echo "zram-config sync $(date +%Y-%m-%d-%H:%M:%S)" >> "$ZLOG"
-		tac "${TMPDIR:-/tmp}"/zram-device-list > "${TMPDIR:-/tmp}"/zram-device-list.rev
-		file="${TMPDIR:-/tmp}/zram-device-list.rev"
+		tac "${TMPDIR}"/zram-device-list > "${TMPDIR}"/zram-device-list.rev
+		file="${TMPDIR}/zram-device-list.rev"
 		while read -r line; do
 			case "$line" in
 				"#"*)
@@ -444,7 +446,7 @@ case "$1" in
 					;;
 			esac
 		done < "$file"
-		rm -fv "${TMPDIR:-/tmp}"/zram-device-list.rev >> "$ZLOG"
+		rm -fv "${TMPDIR}"/zram-device-list.rev >> "$ZLOG"
 		;;
 
 	*)
