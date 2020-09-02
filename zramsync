@@ -2,6 +2,7 @@
 
 set -x
 
+TMPDIR=/tmp
 LOG="/storage/zram/zramsync.log"
 dir="$2"
 storeFile="${dir}/zram.tar"
@@ -21,7 +22,7 @@ if [[ $1 == "recover" ]]; then
 else
 	mode="sync"
 	echo "zramsync creating backup @ $(date)" | tee -a "$LOG"
-	inFile="${TMPDIR:-/tmp}/zram-device-list"
+	inFile="${TMPDIR}/zram-device-list"
 	rm -f "$storeFile"
 fi
 
