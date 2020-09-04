@@ -2,9 +2,10 @@
 Description=zramsync
 RequiresMountsFor=/opt/zram/zram1/upper /opt/zram/zram2/upper
 Requires=zram-config.service
-After=zram-config.service
+After=zram-config.service unattended-upgrades.service
 Before=reboot.target halt.target shutdown.target poweroff.target
 BindsTo=zram-config.service
+Conflicts=unattended-upgrades.service
 
 [Service]
 Type=oneshot
