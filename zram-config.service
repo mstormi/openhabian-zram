@@ -7,7 +7,7 @@ Before=openhab2.service smbd.service
 Type=oneshot
 TimeoutSec=300
 RemainAfterExit=yes
-ExecStartPre=-/usr/local/sbin/zramsync "recover" "/storage/zram"
+ExecStartPre=-/usr/local/sbin/zramsync "recover" "%STORAGE/zram"
 ExecStart=/usr/local/sbin/zram-config "start"
 
 [Install]
