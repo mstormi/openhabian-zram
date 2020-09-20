@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 set -x
+source /etc/openhabian.conf
 
 TMPDIR=/tmp
-LOG="/storage/zram/zramsync.log"
+LOG="${storagedir:-/storage}/zram/zramsync.log"
 dir="$2"
 storeFile="${dir}/zram.tar"
 
