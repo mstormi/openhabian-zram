@@ -10,7 +10,7 @@ BindsTo=zram-config.service
 Type=oneshot
 TimeoutSec=300
 RemainAfterExit=yes
-ExecStop=-/usr/local/sbin/zramsync "sync" "/storage/zram"
+ExecStop=-/usr/local/sbin/zramsync "sync" "%STORAGE/zram"
 ExecStopPost=/usr/local/sbin/zram-config "stop"
 
 [Install]
