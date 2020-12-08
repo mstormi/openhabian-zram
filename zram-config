@@ -108,17 +108,17 @@ createZdir() {
 }
 
 createZlog() {
-	if [[ $(dpkg -s 'nginx') ]] && [[ $(systemctl is-active nginx.service) ]]; then
+	if dpkg -s 'nginx' &> /dev/null && [[ $(systemctl is-active nginx.service) == "active" ]]; then
 		systemctl stop nginx.service >> "$ZLOG" 2>&1 || return 1
 	fi
-	if [[ $(systemctl is-active rsyslog.service) ]]; then
+	if [[ $(systemctl is-active rsyslog.service) == "active" ]]; then
 		systemctl stop rsyslog.service >> "$ZLOG" 2>&1 || return 1
 	fi
 
 	createZdir
 
 	systemctl restart rsyslog.service >> "$ZLOG" 2>&1 || return 1
-	if [[ $(dpkg -s 'nginx') ]]; then
+	if dpkg -s 'nginx' &> /dev/null; then
 		systemctl restart nginx.service >> "$ZLOG" 2>&1 || return 1
 	fi
 
@@ -146,13 +146,14 @@ removeZlog() {
 	fi
 
 	echo "$ZRAM_DEV" >> "$ZLOG"
-	local DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
+	local DEV_NUM
+	DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
 
 	if [[ -n $TARGET_DIR ]]; then
-		if [[ $(dpkg -s 'nginx') ]] && [[ $(systemctl is-active nginx.service) ]]; then
+		if dpkg -s 'nginx' &> /dev/null && [[ $(systemctl is-active nginx.service) == "active" ]]; then
 			systemctl stop nginx.service >> "$ZLOG" 2>&1 || return 1
 		fi
-		if [[ $(systemctl is-active rsyslog.service) ]]; then
+		if [[ $(systemctl is-active rsyslog.service) == "active" ]]; then
 			systemctl stop rsyslog.service >> "$ZLOG" 2>&1 || return 1
 		fi
 
@@ -180,10 +181,10 @@ removeZlog() {
 		return 1
 	fi
 
-	if [[ $(dpkg -s 'nginx') ]] && [[ $(systemctl is-active nginx.service) ]]; then
+	if dpkg -s 'nginx' &> /dev/null && [[ $(systemctl is-active nginx.service) == "active" ]]; then
 		systemctl stop nginx.service >> "$ZLOG" 2>&1 || return 1
 	fi
-	if [[ $(systemctl is-active rsyslog.service) ]]; then
+	if [[ $(systemctl is-active rsyslog.service) == "active" ]]; then
 		systemctl stop rsyslog.service >> "$ZLOG" 2>&1 || return 1
 	fi
 
@@ -191,7 +192,7 @@ removeZlog() {
 	zramctl -r "/dev${ZRAM_DEV}" >> "$ZLOG" 2>&1 || return 1
 
 	systemctl restart rsyslog.service >> "$ZLOG" 2>&1 || return 1
-	if [[ $(dpkg -s 'nginx') ]]; then
+	if dpkg -s 'nginx' &> /dev/null; then
 		systemctl restart nginx.service >> "$ZLOG" 2>&1 || return 1
 	fi
 
@@ -201,7 +202,8 @@ removeZlog() {
 
 removeZdir() {
 	echo "$ZRAM_DEV" >> "$ZLOG"
-	local DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
+	local DEV_NUM
+	DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
 
 	if [[ -n "$TARGET_DIR" ]]; then
 		if ! (umount --verbose "${TARGET_DIR}/" >> "$ZLOG" 2>&1); then
@@ -234,7 +236,8 @@ removeZdir() {
 }
 
 removeZswap() {
-	local DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
+	local DEV_NUM
+	DEV_NUM="$(echo "$ZRAM_DEV" | tr -dc '0-9')"
 
 	swapoff "/dev${ZRAM_DEV}" >> "$ZLOG" 2>&1 || return 1
 	echo "$DEV_NUM" > /sys/class/zram-control/hot_remove
@@ -415,42 +418,8 @@ case "$1" in
 		disableZephemeral
 		;;
 
-	sync)
-		echo "zram-config sync $(date +%Y-%m-%d-%H:%M:%S)" >> "$ZLOG"
-		tac "${TMPDIR}"/zram-device-list > "${TMPDIR}"/zram-device-list.rev
-		file="${TMPDIR}/zram-device-list.rev"
-		while read -r line; do
-			case "$line" in
-				"#"*)
-					# Skip comment line
-					continue
-					;;
-
-				"")
-					# Skip empty line
-					continue
-					;;
-
-				*)
-					set -- $line
-					echo "ztab sync ${1} ${2} ${3} ${4}" >> "$ZLOG"
-					case "$1" in
-						dir|log)
-							ZTYPE="$1"
-							ZRAM_DEV="$2"
-							TARGET_DIR="$3"
-							BIND_DIR="$4"
-							mergeOverlay
-							;;
-					esac
-					;;
-			esac
-		done < "$file"
-		rm -fv "${TMPDIR}"/zram-device-list.rev >> "$ZLOG"
-		;;
-
 	*)
-		echo "Usage: zram-config {start|stop|sync|enable-ephemeral|disable-ephemeral}" > 2
+		echo "Usage: zram-config {start|stop|enable-ephemeral|disable-ephemeral}" > 2
 		exit 1
 		;;
 esac
