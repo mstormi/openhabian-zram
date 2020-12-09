@@ -1,14 +1,14 @@
 [Unit]
 Description=zram-config
 After=local-fs.target
-Before=openhab2.service smbd.service
+Before=reboot.target halt.target shutdown.target poweroff.target openhab2.service smbd.service
 
 [Service]
 Type=oneshot
 TimeoutSec=300
 RemainAfterExit=yes
-ExecStartPre=-/usr/local/sbin/zramsync "recover" "%STORAGE/zram"
 ExecStart=/usr/local/sbin/zram-config "start"
+ExecStart=/usr/local/sbin/zram-config "stop"
 
 [Install]
 WantedBy=basic.target
